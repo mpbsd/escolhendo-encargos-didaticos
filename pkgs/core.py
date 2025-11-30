@@ -1,7 +1,15 @@
 import re
+from datetime import datetime
+from pathlib import Path
 
 import pdfplumber
 from unidecode import unidecode
+
+T = datetime.now()
+Y = T.strftime("%Y")
+M = T.strftime("%m")
+S = 1 if int(M) <= 6 else 2
+
 
 # REGEXES {{{
 dashs_re = re.compile(r" *-{1,} *")
@@ -98,29 +106,34 @@ def IFIXIT(a_given_str):  # {{{1
     return a_given_str  # }}}
 
 
-def DSCPLN(SEMESTER):  # {{{
-    SBJCT = ""
+def DSCPLN(year=Y, smtr=S):  # {{{
+    PDF = f"data/{year}_{smtr}.pdf"
 
-    with pdfplumber.open(f"data/{SEMESTER}.pdf") as pdf:
-        for page in pdf.pages:
-            TBL = page.extract_table()
-            for ROW in TBL:
-                for COL in ROW:
-                    if COL not in ["", None]:
-                        SBJCT += r"-" + IFIXIT(unidecode(COL.upper()))
+    if Path(PDF).is_file():
+        SBJCT = ""
 
-    SBJCT = dashs_re.sub(r" - ", SBJCT)
-    SBJCT = clean_re.sub(r"", SBJCT)
-    SBJCT = [x.strip() for x in split_re.split(SBJCT) if not white_re.match(x)]
+        with pdfplumber.open(PDF) as pdf:
+            for page in pdf.pages:
+                TBL = page.extract_table()
+                for ROW in TBL:
+                    for COL in ROW:
+                        if COL not in ["", None]:
+                            SBJCT += r"-" + IFIXIT(unidecode(COL.upper()))
 
-    N = len(SBJCT)
-    i = 0
+        SBJCT = dashs_re.sub(r" - ", SBJCT)
+        SBJCT = clean_re.sub(r"", SBJCT)
+        SBJCT = [x.strip() for x in split_re.split(SBJCT) if not white_re.match(x)]
 
-    while i < N:
-        if where_re.match(SBJCT[i]):
-            CAMPUS = where_re.sub(r"\1", SBJCT[i])
-        else:
-            SBJCT[i] = CAMPUS + r" - " + SBJCT[i]
-        i += 1
+        N = len(SBJCT)
+        i = 0
+
+        while i < N:
+            if where_re.match(SBJCT[i]):
+                CAMPUS = where_re.sub(r"\1", SBJCT[i])
+            else:
+                SBJCT[i] = f"{year}{smtr:02d} - " + CAMPUS + r" - " + SBJCT[i]
+            i += 1
+    else:
+        SBJCT = "There's no such file on disk."
 
     return SBJCT  # }}}
