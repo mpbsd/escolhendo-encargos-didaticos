@@ -13,7 +13,13 @@ S = 1 if int(M) <= 6 else 2
 
 # REGEXES {{{
 dashs_re = re.compile(r" *-{1,} *")
-clean_re = re.compile(r"(^(?:.*?)(?=CAMPUS)|- (?:FCT|PRACA|MANHA|TARDE|NOITE)\b)")
+clean_re = re.compile(
+    r"("
+    r"^(?:.*?)(?=CAMPUS)"
+    r"|"
+    r"- (?:FCT|PRACA|MANHA|MATUTINO|TARDE|VESPERTINO|NOITE|NOTURNO)\b"
+    r")"
+)
 white_re = re.compile(r"^\s*$")
 split_re = re.compile(
     r"- ("
@@ -59,6 +65,7 @@ def IFIXIT(a_given_str):  # {{{1
         r"ENGENHARIACIVIL": "ENGENHARIA CIVIL",
         r"ENGENHARIADAMECANICA": "ENGENHARIA MECANICA",
         r"ENGENHARIADEALIMENTOS": "ENGENHARIA DE ALIMENTOS",
+        r"ENG\.? DE ALIMENTOS": "ENGENHARIA DE ALIMENTOS",
         r"ENGENHARIADECOMPUTACAO": "ENGENHARIA DE COMPUTACAO",
         r"ENGENHARIADEMATERIAIS": "ENGENHARIA DE MATERIAIS",
         r"ENGENHARIADEPRODUCAO": "ENGENHARIA REPRODUCAO",
@@ -134,6 +141,6 @@ def DSCPLN(year=Y, smtr=S):  # {{{
                 SBJCT[i] = f"{year}{smtr:02d} - " + CAMPUS + r" - " + SBJCT[i]
             i += 1
     else:
-        SBJCT = "There's no such file on disk."
+        SBJCT = "Could find file on disk. Aborting."
 
     return SBJCT  # }}}
