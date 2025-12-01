@@ -4,12 +4,12 @@ import csv
 import tomllib
 
 
-def SCORE(PREFERENCES, DISCIPLINE):
+def PRIMARY_SCORE(PARTIALITY, CURRICULUM):
     score = 0
-    score += PREFERENCES["CAMPUS"][DISCIPLINE[0]]
-    score += PREFERENCES["CURSO"][DISCIPLINE[1]]
-    score += PREFERENCES["DISCIPLINA"][DISCIPLINE[2]]
-    score += PREFERENCES["HORARIO"][DISCIPLINE[3]]
+    score += PARTIALITY["CAMPUS"][CURRICULUM[0]]
+    score += PARTIALITY["CURSO"][CURRICULUM[1]]
+    score += PARTIALITY["DISCIPLINA"][CURRICULUM[2]]
+    score += PARTIALITY["HORARIO"][CURRICULUM[3]]
     return score
 
 
@@ -17,8 +17,7 @@ def main():
 
     CURRICULUM = []
     PARTIALITY = {}
-
-    GOLDEN = []
+    AUSPICIOUS = []
 
     with open("data/csv/202502.csv", "r") as csvfile:
         CSV = csv.reader(csvfile, delimiter=";")
@@ -30,13 +29,13 @@ def main():
         for k, v in TOML.items():
             PARTIALITY[k] = v
 
-    for dscpln in CURRICULUM:
-        score = SCORE(PARTIALITY, dscpln)
+    for curriculum in CURRICULUM:
+        score = PRIMARY_SCORE(PARTIALITY, curriculum)
         if score > 0:
-            dscpln.append(score)
-            GOLDEN.append(dscpln)
+            curriculum.append(score)
+            AUSPICIOUS.append(curriculum)
 
-    E = sorted(GOLDEN, key=lambda x: x[4], reverse=True)
+    E = sorted(AUSPICIOUS, key=lambda x: x[4], reverse=True)
 
     for e in E:
         print(e)
