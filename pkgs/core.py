@@ -68,7 +68,7 @@ def IFIXIT(a_given_str):  # {{{1
         r"ENG\.? DE ALIMENTOS": "ENGENHARIA DE ALIMENTOS",
         r"ENGENHARIADECOMPUTACAO": "ENGENHARIA DE COMPUTACAO",
         r"ENGENHARIADEMATERIAIS": "ENGENHARIA DE MATERIAIS",
-        r"ENGENHARIADEPRODUCAO": "ENGENHARIA REPRODUCAO",
+        r"ENGENHARIADEPRODUCAO": "ENGENHARIA DE PRODUCAO",
         r"ENGENHARIADESOFTWARE": "ENGENHARIA DE SOFTWARE",
         r"ENGENHARIADETRANSPORTE": "ENGENHARIA DE TRANSPORTE",
         r"ENGENHARIAELETRICA": "ENGENHARIA ELETRICA",
@@ -113,11 +113,11 @@ def IFIXIT(a_given_str):  # {{{1
     return a_given_str  # }}}
 
 
-def DSCPLN(year=Y, smtr=S):  # {{{
-    PDF = f"data/{year}_{smtr}.pdf"
+def DSCPLN(year=Y, semester=S):  # {{{
+    PDF = f"data/pdf/{year}_{semester}.pdf"
 
     if Path(PDF).is_file():
-        SBJCT = ""
+        STR = ""
 
         with pdfplumber.open(PDF) as pdf:
             for page in pdf.pages:
@@ -125,22 +125,37 @@ def DSCPLN(year=Y, smtr=S):  # {{{
                 for ROW in TBL:
                     for COL in ROW:
                         if COL not in ["", None]:
-                            SBJCT += r"-" + IFIXIT(unidecode(COL.upper()))
+                            STR += r"-" + IFIXIT(unidecode(COL.upper()))
 
-        SBJCT = dashs_re.sub(r" - ", SBJCT)
-        SBJCT = clean_re.sub(r"", SBJCT)
-        SBJCT = [x.strip() for x in split_re.split(SBJCT) if not white_re.match(x)]
+        STR = dashs_re.sub(r" - ", STR)
+        STR = clean_re.sub(r"", STR)
+        STR = [x.strip() for x in split_re.split(STR) if not white_re.match(x)]
 
-        N = len(SBJCT)
+        N = len(STR)
         i = 0
 
         while i < N:
-            if where_re.match(SBJCT[i]):
-                CAMPUS = where_re.sub(r"\1", SBJCT[i])
+            if where_re.match(STR[i]):
+                CAMPUS = where_re.sub(r"\1", STR[i])
             else:
-                SBJCT[i] = f"{year}{smtr:02d} - " + CAMPUS + r" - " + SBJCT[i]
+                STR[i] = f"{year}{semester:02d} - " + CAMPUS + r" - " + STR[i]
             i += 1
-    else:
-        SBJCT = "Could find file on disk. Aborting."
 
-    return SBJCT  # }}}
+        STR = [x for x in STR if not where_re.match(x)]
+    else:
+        print("Could find file on disk. Aborting.")
+        STR = None
+
+    return STR  # }}}
+
+
+def core():
+
+    dscpln = DSCPLN()
+    if dscpln:
+        with open("brew/draft.csv", "w") as cfile:
+            print(dscpln, file=cfile)
+
+
+if __name__ == "__main__":
+    core()
