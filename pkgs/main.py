@@ -6,9 +6,9 @@ import tomllib
 from itertools import combinations
 
 PAYLOAD = {
-    "6": re.compile(r"^([0-9]{3})([MTN])([0-9]{2})$"),
-    "4": re.compile(r"^([0-9]{2})([MTN])([0-9]{2})$"),
-    "G": re.compile(r"^([0-9]{1,3})([MTN])([0-9]{1,3})$"),
+    0: re.compile(r"^([0-9]{1,3})([MTN])([0-9]{1,3})$"),
+    6: re.compile(r"^([0-9]{3})([MTN])([0-9]{2})$"),
+    4: re.compile(r"^([0-9]{2})([MTN])([0-9]{2})$"),
 }
 
 
@@ -26,7 +26,7 @@ def HARMONIOUS(list_of_schedules):
     D = re.compile(r"[0-9]")
     L = list(
         map(
-            lambda x: PAYLOAD["G"].match(x).groups(),
+            lambda x: PAYLOAD[0].match(x).groups(),
             list_of_schedules,
         )
     )
@@ -59,36 +59,52 @@ def SCORE2ND(PAIRINGS, payload):
     if payload in PAIRINGS.keys():
         k = 0
         for pairing in PAIRINGS[payload]:
-            F[k] = {"pairing": pairing, "score": 0}
-            if len(set([x[0] for x in F[k]["pairing"]])) == 1:
-                F[k]["score"] += 1
-            if len(set([x[2] for x in F[k]["pairing"]])) == 1:
-                F[k]["score"] += 1
-            D = len(set([PAYLOAD["4"].match(x[3])[1] for x in F[k]["pairing"]]))
+            F[k] = {"P": pairing, "S": 0}
+
+            if len(set([x[0] for x in F[k]["P"]])) == 1:
+                F[k]["S"] += 1
+            else:
+                F[k]["S"] -= 1
+
+            if len(set([x[2] for x in F[k]["P"]])) == 1:
+                F[k]["S"] += 1
+            else:
+                F[k]["S"] -= 1
+
+            D = len(set([PAYLOAD[payload].match(x[3])[1] for x in F[k]["P"]]))
+
             if D == 1:
-                F[k]["score"] += 1
+                F[k]["S"] += 1
             else:
-                F[k]["score"] -= 1
-            P = len(set([PAYLOAD["4"].match(x[3])[2] for x in F[k]["pairing"]]))
+                F[k]["S"] -= 1
+
+            P = len(set([PAYLOAD[payload].match(x[3])[2] for x in F[k]["P"]]))
+
             if P == 1:
-                F[k]["score"] += 1
+                F[k]["S"] += 1
             else:
-                F[k]["score"] -= 1
-            N = [PAYLOAD["4"].match(x[3])[3] for x in F[k]["pairing"]]
+                F[k]["S"] -= 1
+
+            N = [sorted(PAYLOAD[payload].match(x[3])[3]) for x in F[k]["P"]]
             n = len(N) - 1
             B = True
-            while (n > 1) and (B == True):
+
+            while (B == True) and (n > 1):
                 if int(N[n][0]) - int(N[n - 1][-1]) > 1:
                     B = False
                 else:
                     n -= 1
+
             if B is True:
-                F[k]["score"] += 1
+                F[k]["S"] += 1
             else:
-                F[k]["score"] -= 1
+                F[k]["S"] -= 1
+
             k += 1
-        I = sorted(F.keys(), key=lambda k: F[k]["score"], reverse=True)
-        return [F[k]["pairing"] for k in I]
+
+        I = sorted(F.keys(), key=lambda k: F[k]["S"], reverse=True)
+
+        return [F[k]["P"] for k in I]
     else:
         return F
 
@@ -117,11 +133,11 @@ def main():
             AUSPICIOUS.append(curriculum)
 
     E = {
-        4: [x for x in AUSPICIOUS if PAYLOAD["4"].match(x[3])],
-        6: [x for x in AUSPICIOUS if PAYLOAD["6"].match(x[3])],
+        4: [x for x in AUSPICIOUS if PAYLOAD[4].match(x[3])],
+        6: [x for x in AUSPICIOUS if PAYLOAD[6].match(x[3])],
     }
 
-    F = SCORE2ND(PAIRINGS(E, 12), 4)
+    F = SCORE2ND(PAIRINGS(E, 12), 6)
 
     with open("brew/draft.txt", "w") as tfile:
         print(F, file=tfile)

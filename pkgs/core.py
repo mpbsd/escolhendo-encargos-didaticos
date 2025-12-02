@@ -152,6 +152,7 @@ def DSCPLN(year=Y, semester=S):  # {{{
 def core():
 
     dscpln = DSCPLN()
+
     if dscpln:
         with open("brew/draft.csv", "w") as cfile:
             print(dscpln, file=cfile)
