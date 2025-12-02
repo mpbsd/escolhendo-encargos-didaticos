@@ -5,8 +5,11 @@ import re
 import tomllib
 from itertools import combinations
 
-PAYLOAD6 = re.compile(r"^[0-9]{3}[MTN][0-9]{2}$")
-PAYLOAD4 = re.compile(r"^[0-9]{2}[MTN][0-9]{2}$")
+PAYLOAD = {
+    "6": re.compile(r"^([0-9]{3})([MTN])([0-9]{2})$"),
+    "4": re.compile(r"^([0-9]{2})([MTN])([0-9]{2})$"),
+    "G": re.compile(r"^([0-9]{1,3})([MTN])([0-9]{1,3})$"),
+}
 
 
 def SCORE1ST(PARTIALITY, CURRICULUM):
@@ -18,14 +21,76 @@ def SCORE1ST(PARTIALITY, CURRICULUM):
     return score
 
 
-def SCORE2ND(AUSPICIOUS, PROFILE):
+def HARMONIOUS(list_of_schedules):
+    V = True
+    D = re.compile(r"[0-9]")
+    L = list(
+        map(
+            lambda x: PAYLOAD["G"].match(x).groups(),
+            list_of_schedules,
+        )
+    )
+    for x in combinations(L, 2):
+        A, B, C = x[0]
+        a, b, c = x[1]
+        C0 = len([d for d in D.findall(A) if d in D.findall(a)]) > 0
+        C1 = B == b
+        C2 = len([d for d in D.findall(C) if d in D.findall(c)]) > 0
+        if C0 and C1 and C2:
+            V = False
+    return V
+
+
+def PAIRINGS(AUSPICIOUS, PROFILE):
     F = {}
-    if PROFILE in [8, 10, 12, 14, 16]:
-        if PROFILE == 12:
-            for n in [4, 6]:
-                N = PROFILE // n
-                F[n] = list(combinations(AUSPICIOUS[n], N))
+    if PROFILE == 12:
+        for n in [4, 6]:
+            N = PROFILE // n
+            F[n] = [
+                X
+                for X in combinations(AUSPICIOUS[n], N)
+                if HARMONIOUS([x[3] for x in X])
+            ]
     return F
+
+
+def SCORE2ND(PAIRINGS, payload):
+    F = {}
+    if payload in PAIRINGS.keys():
+        k = 0
+        for pairing in PAIRINGS[payload]:
+            F[k] = {"pairing": pairing, "score": 0}
+            if len(set([x[0] for x in F[k]["pairing"]])) == 1:
+                F[k]["score"] += 1
+            if len(set([x[2] for x in F[k]["pairing"]])) == 1:
+                F[k]["score"] += 1
+            D = len(set([PAYLOAD["4"].match(x[3])[1] for x in F[k]["pairing"]]))
+            if D == 1:
+                F[k]["score"] += 1
+            else:
+                F[k]["score"] -= 1
+            P = len(set([PAYLOAD["4"].match(x[3])[2] for x in F[k]["pairing"]]))
+            if P == 1:
+                F[k]["score"] += 1
+            else:
+                F[k]["score"] -= 1
+            N = [PAYLOAD["4"].match(x[3])[3] for x in F[k]["pairing"]]
+            n = len(N) - 1
+            B = True
+            while (n > 1) and (B == True):
+                if int(N[n][0]) - int(N[n - 1][-1]) > 1:
+                    B = False
+                else:
+                    n -= 1
+            if B is True:
+                F[k]["score"] += 1
+            else:
+                F[k]["score"] -= 1
+            k += 1
+        I = sorted(F.keys(), key=lambda k: F[k]["score"], reverse=True)
+        return [F[k]["pairing"] for k in I]
+    else:
+        return F
 
 
 def main():
@@ -52,18 +117,14 @@ def main():
             AUSPICIOUS.append(curriculum)
 
     E = {
-        4: [x for x in AUSPICIOUS if PAYLOAD4.match(x[3])],
-        6: [x for x in AUSPICIOUS if PAYLOAD6.match(x[3])],
+        4: [x for x in AUSPICIOUS if PAYLOAD["4"].match(x[3])],
+        6: [x for x in AUSPICIOUS if PAYLOAD["6"].match(x[3])],
     }
 
-    F = SCORE2ND(E, 12)
+    F = SCORE2ND(PAIRINGS(E, 12), 4)
 
-    print(F[6])
-
-    # E = sorted(AUSPICIOUS, key=lambda x: x[4], reverse=True)
-    #
-    # for e in E:
-    #     print(e)
+    with open("brew/draft.txt", "w") as tfile:
+        print(F, file=tfile)
 
 
 if __name__ == "__main__":
