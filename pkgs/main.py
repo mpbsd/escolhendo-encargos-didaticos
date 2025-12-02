@@ -85,7 +85,12 @@ def SCORE2ND(PAIRINGS, payload):
             else:
                 F[k]["S"] -= 1
 
-            N = [sorted(PAYLOAD[payload].match(x[3])[3]) for x in F[k]["P"]]
+            # este test está errado.
+            # ele apenas deveria ser executado caso haja interseccao entre os
+            # dias das aulas e, neste caso, se o periodo em que elas ocorrem
+            # forem os mesmos.
+            # é necessario corrigir.
+            N = sorted([PAYLOAD[payload].match(x[3])[3] for x in F[k]["P"]])
             n = len(N) - 1
             B = True
 
