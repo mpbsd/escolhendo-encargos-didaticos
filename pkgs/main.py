@@ -72,36 +72,21 @@ def SCORE2ND(PAIRINGS, payload):
                 F[k]["S"] -= 1
 
             D = len(set([PAYLOAD[payload].match(x[3])[1] for x in F[k]["P"]]))
-
-            if D == 1:
-                F[k]["S"] += 1
-            else:
-                F[k]["S"] -= 1
-
             P = len(set([PAYLOAD[payload].match(x[3])[2] for x in F[k]["P"]]))
 
-            if P == 1:
-                F[k]["S"] += 1
-            else:
-                F[k]["S"] -= 1
-
-            # este test está errado.
-            # ele apenas deveria ser executado caso haja interseccao entre os
-            # dias das aulas e, neste caso, se o periodo em que elas ocorrem
-            # forem os mesmos.
-            # é necessario corrigir.
-            N = sorted([PAYLOAD[payload].match(x[3])[3] for x in F[k]["P"]])
-            n = len(N) - 1
-            B = True
-
-            while (B == True) and (n > 1):
-                if int(N[n][0]) - int(N[n - 1][-1]) > 1:
-                    B = False
+            if (D == 1) and (P == 1):
+                N = sorted([PAYLOAD[payload].match(x[3])[3] for x in F[k]["P"]])
+                n = len(N) - 1
+                B = True
+                while (B == True) and (n > 1):
+                    if int(N[n][0]) - int(N[n - 1][-1]) > 1:
+                        B = False
+                    else:
+                        n -= 1
+                if B is True:
+                    F[k]["S"] += 1
                 else:
-                    n -= 1
-
-            if B is True:
-                F[k]["S"] += 1
+                    F[k]["S"] -= 1
             else:
                 F[k]["S"] -= 1
 
@@ -112,6 +97,40 @@ def SCORE2ND(PAIRINGS, payload):
         return [F[k]["P"] for k in I]
     else:
         return F
+
+
+def PRINTOUT(AUSPICIOUS, PROFILE):
+    E = {
+        4: [x for x in AUSPICIOUS if PAYLOAD[4].match(x[3])],
+        6: [x for x in AUSPICIOUS if PAYLOAD[6].match(x[3])],
+    }
+
+    F = SCORE2ND(PAIRINGS(E, 12), PROFILE)
+    M = len(F)
+
+    if M <= 8:
+        G = F
+    else:
+        G = []
+        X = []
+        i = 0
+        while (len(G) < 8) and (i < M):
+            B = True
+            N = len(F[i])
+            j = 0
+            while (B == True) and (j < N):
+                if F[i][j] in X:
+                    B = False
+                else:
+                    j += 1
+            if B == True:
+                G.append(F[i])
+                for j in range(N):
+                    X.append(F[i][j])
+            i += 1
+
+    with open(f"brew/DRAFT{PROFILE}.txt", "w") as tfile:
+        print(G, file=tfile)
 
 
 def main():
@@ -134,18 +153,10 @@ def main():
     for curriculum in CURRICULUM:
         score = SCORE1ST(PARTIALITY, curriculum)
         if score > 0:
-            # curriculum.append(score)
             AUSPICIOUS.append(curriculum)
 
-    E = {
-        4: [x for x in AUSPICIOUS if PAYLOAD[4].match(x[3])],
-        6: [x for x in AUSPICIOUS if PAYLOAD[6].match(x[3])],
-    }
-
-    F = SCORE2ND(PAIRINGS(E, 12), 6)
-
-    with open("brew/draft.txt", "w") as tfile:
-        print(F, file=tfile)
+    PRINTOUT(AUSPICIOUS, 4)
+    PRINTOUT(AUSPICIOUS, 6)
 
 
 if __name__ == "__main__":
