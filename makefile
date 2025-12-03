@@ -1,12 +1,11 @@
 build:
-	python3 -m pkgs.main
+	python3 -m pkgs.core
 
 black:
 	isort pkgs/core.py
 	black -l 79 pkgs/core.py
-	isort pkgs/main.py
-	black -l 79 pkgs/main.py
-
+	isort pkgs/xpdf.py
+	black -l 79 pkgs/xpdf.py
 
 clean:
 	find . -type d -name __pycache__ | xargs rm -rf

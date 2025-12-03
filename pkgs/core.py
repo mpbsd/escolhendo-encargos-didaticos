@@ -1,162 +1,163 @@
+#!/usr/bin/env python3
+
+import csv
 import re
-from datetime import datetime
-from pathlib import Path
+import tomllib
+from itertools import combinations
 
-import pdfplumber
-from unidecode import unidecode
-
-T = datetime.now()
-Y = T.strftime("%Y")
-M = T.strftime("%m")
-S = 1 if int(M) <= 6 else 2
+PAYLOAD = {
+    0: re.compile(r"^([0-9]{1,3})([MTN])([0-9]{1,3})$"),
+    6: re.compile(r"^([0-9]{3})([MTN])([0-9]{2})$"),
+    4: re.compile(r"^([0-9]{2})([MTN])([0-9]{2})$"),
+}
 
 
-# REGEXES {{{
-dashs_re = re.compile(r" *-{1,} *")
-clean_re = re.compile(
-    r"("
-    r"^(?:.*?)(?=CAMPUS)"
-    r"|"
-    r"- (?:FCT|PRACA|MANHA|MATUTINO|TARDE|VESPERTINO|NOITE|NOTURNO)\b"
-    r")"
-)
-white_re = re.compile(r"^\s*$")
-split_re = re.compile(
-    r"- ("
-    r"CAMPUS (?:APARECIDA|COLEMAR|SAMAMBAIA)"
-    r"|"
-    r"[^-]+ - [^-]+ - [0-9]{1,3}[MTN][0-9]{1,3}"
-    r")"
-)
-where_re = re.compile(r"^(?:- )?(CAMPUS (?:APARECIDA|COLEMAR|SAMAMBAIA))$")
-# }}}
+def SCORE1ST(PARTIALITY, CURRICULUM):
+    score = 0
+    score += PARTIALITY["CAMPUS"][CURRICULUM[0]]
+    score += PARTIALITY["CURSO"][CURRICULUM[1]]
+    score += PARTIALITY["DISCIPLINA"][CURRICULUM[2]]
+    score += PARTIALITY["HORARIO"][CURRICULUM[3]]
+    return score
 
 
-def IFIXIT(a_given_str):  # {{{1
-    FIXLIST = {  # {{{2
-        r"ALGEBRALINEAR": "ALGEBRA LINEAR",
-        r"ANALISEREALII": "ANALISE REAL II",
-        r"BIOESTATISTICA1": "BIOESTATISTICA 1",
-        r"BIOESTATISTICA2": "BIOESTATISTICA 2",
-        r"CALCULO1A": "CALCULO 1A",
-        r"CALCULO1B": "CALCULO 1B",
-        r"CALCULO1C": "CALCULO 1C",
-        r"CALCULO2A": "CALCULO 2A",
-        r"CALCULO2B": "CALCULO 2B",
-        r"CALCULO3": "CALCULO 3",
-        r"CALCULO3A": "CALCULO 3A",
-        r"CALCULO3B": "CALCULO 3B",
-        r"CALCULODIFERENCIAL": "CALCULO DIFERENCIAL",
-        r"CALCULONUMERICO": "CALCULO NUMERICO",
-        r"CAMPUSAPARECIDA": "CAMPUS APARECIDA",
-        r"CAMPUSCOLEMAR": "CAMPUS COLEMAR",
-        r"CAMPUSGOIAS": "CAMPUS GOIAS",
-        r"CAMPUSSAMAMBAIA": "CAMPUS SAMAMBAIA",
-        r"CIENCIADACOMPUTACAO": "CIENCIA DA COMPUTACAO",
-        r"CIENCIASAMBIENTAIS": "CIENCIAS AMBIENTAIS",
-        r"CIENCIASBIOLOGICAS": "CIENCIAS BIOLOGICAS",
-        r"CIENCIASCONTABEIS": "CIENCIAS CONTABEIS",
-        r"CIENCIASDACOMPUTACAO": "CIENCIA DA COMPUTACAO",
-        r"CIENCIASECONOMICAS": "CIENCIAS ECONOMICAS",
-        r"COMUNICACAOSOCIAL": "COMUNICACAO SOCIAL",
-        r"DISCIPLINASDEEXTERNAS": "DISCIPLINAS EXTERNAS",
-        r"EDUCACAOMATEMATICAINCLUSIVA": "EDUCACAO MATEMATICA INCLUSIVA",
-        r"ENGENHARIAAMBIENTAL": "ENGENHARIA AMBIENTAL",
-        r"ENGENHARIACIVIL": "ENGENHARIA CIVIL",
-        r"ENGENHARIADAMECANICA": "ENGENHARIA MECANICA",
-        r"ENGENHARIADEALIMENTOS": "ENGENHARIA DE ALIMENTOS",
-        r"ENG\.? DE ALIMENTOS": "ENGENHARIA DE ALIMENTOS",
-        r"ENGENHARIADECOMPUTACAO": "ENGENHARIA DE COMPUTACAO",
-        r"ENGENHARIADEMATERIAIS": "ENGENHARIA DE MATERIAIS",
-        r"ENGENHARIADEPRODUCAO": "ENGENHARIA DE PRODUCAO",
-        r"ENGENHARIADESOFTWARE": "ENGENHARIA DE SOFTWARE",
-        r"ENGENHARIADETRANSPORTE": "ENGENHARIA DE TRANSPORTE",
-        r"ENGENHARIAELETRICA": "ENGENHARIA ELETRICA",
-        r"ENGENHARIAFLORESTAL": "ENGENHARIA FLORESTAL",
-        r"ENGENHARIAMECANICA": "ENGENHARIA MECANICA",
-        r"ENGENHARIAQUIMICA": "ENGENHARIA QUIMICA",
-        r"ESTATISICAI": "ESTATISICA I",
-        r"ESTATISTICA1": "ESTATISTICA 1",
-        r"ESTATISTICAAPLICADAAPSICOLOGIA": "ESTATISTICA APLICADA A PSICOLOGIA",
-        r"ESTATISTICADESCRITIVAEPROBABILIDADE": "ESTATISTICA DESCRITIVA E PROBABILIDADE",
-        r"ESTATISTICAII": "ESTATISTICA II",
-        r"ESTATISTICAINFERENCIAL": "ESTATISTICA INFERENCIAL",
-        r"FISICABACHARELADO": "FISICA BACHARELADO",
-        r"FISICALICENCIATURA": "FISICA LICENCIATURA",
-        r"GEOMETRIAANALITICA": "GEOMETRIA ANALITICA",
-        r"GESTAODAINFORMACAO": "GESTAO DA INFORMACAO",
-        r"GESTAODEINFORMACAO": "GESTAO DA INFORMACAO",
-        r"INSTITUTODEFISICA": "INSTITUTO DE FISICA",
-        r"INTELIGENCIAARTIFICIAL": "INTELIGENCIA ARTIFICIAL",
-        r"INTRODUCAOAESTATISTICA": "INTRODUCAO A ESTATISTICA",
-        r"INTRODUCAOAPROBABILIDADE": "INTRODUCAO A PROBABILIDADE",
-        r"MATEMATICAAPLICADA": "MATEMATICA APLICADA",
-        r"MATEMATICABACHARELADO": "MATEMATICA BACHARELADO",
-        r"MATEMATICADISCRETA": "MATEMATICA DISCRETA",
-        r"MATEMATICALICENCIATURA": "MATEMATICA LICENCIATURA",
-        r"NOCOESDEATUARIA": "NOCOES DE ATUARIA",
-        r"PROBABILIDADEEESTATISTICA": "PROBABILIDADE E ESTATISTICA",
-        r"PROBABILIDADEEESTATISTICAA": "PROBABILIDADE E ESTATISTICA A",
-        r"PROBABILIDADEEESTATISTICAB": "PROBABILIDADE E ESTATISTICA B",
-        r"PROBABILIDADE E ESTATISTICA": "PROBABILIDADE E ESTATISTICA",
-        r"PROBABILIDADE E ESTATISTICAA": "PROBABILIDADE E ESTATISTICA A",
-        r"PROBABILIDADE E ESTATISTICAB": "PROBABILIDADE E ESTATISTICA B",
-        r"QUIMICABACH\.": "QUIMICA BACHARELADO",
-        r"QUIMICABACHARELADO": "QUIMICA BACHARELADO",
-        r"QUIMICALICENCIATURA": "QUIMICA LICENCIATURA",
-        r"RELACOESINTERNACIONAIS": "RELACOES INTERNACIONAIS",
-        r"RELACOESPUBLICAS": "RELACOES PUBLICAS",
-        r"SISTEMASDEINFORMACAO": "SISTEMAS DE INFORMACAO",
-    }  # }}}
-    for err in FIXLIST.keys():
-        a_given_str = re.sub(err, FIXLIST[err], a_given_str)
-    return a_given_str  # }}}
+def HARMONIOUS(list_of_schedules):
+    V = True
+    D = re.compile(r"[0-9]")
+    L = list(
+        map(
+            lambda x: PAYLOAD[0].match(x).groups(),
+            list_of_schedules,
+        )
+    )
+    for x in combinations(L, 2):
+        A, B, C = x[0]
+        a, b, c = x[1]
+        C0 = len([d for d in D.findall(A) if d in D.findall(a)]) > 0
+        C1 = B == b
+        C2 = len([d for d in D.findall(C) if d in D.findall(c)]) > 0
+        if C0 and C1 and C2:
+            V = False
+    return V
 
 
-def DSCPLN(year=Y, semester=S):  # {{{
-    PDF = f"data/pdf/{year}_{semester}.pdf"
+def PAIRINGS(AUSPICIOUS, PROFILE):
+    F = {}
+    if PROFILE == 12:
+        for n in [4, 6]:
+            N = PROFILE // n
+            F[n] = [
+                X
+                for X in combinations(AUSPICIOUS[n], N)
+                if HARMONIOUS([x[3] for x in X])
+            ]
+    return F
 
-    if Path(PDF).is_file():
-        STR = ""
 
-        with pdfplumber.open(PDF) as pdf:
-            for page in pdf.pages:
-                TBL = page.extract_table()
-                for ROW in TBL:
-                    for COL in ROW:
-                        if COL not in ["", None]:
-                            STR += r"-" + IFIXIT(unidecode(COL.upper()))
+def SCORE2ND(PAIRINGS, payload):
+    F = {}
+    if payload in PAIRINGS.keys():
+        k = 0
+        for pairing in PAIRINGS[payload]:
+            F[k] = {"P": pairing, "S": 0}
 
-        STR = dashs_re.sub(r" - ", STR)
-        STR = clean_re.sub(r"", STR)
-        STR = [x.strip() for x in split_re.split(STR) if not white_re.match(x)]
-
-        N = len(STR)
-        i = 0
-
-        while i < N:
-            if where_re.match(STR[i]):
-                CAMPUS = where_re.sub(r"\1", STR[i])
+            if len(set([x[0] for x in F[k]["P"]])) == 1:
+                F[k]["S"] += 1
             else:
-                STR[i] = f"{year}{semester:02d} - " + CAMPUS + r" - " + STR[i]
+                F[k]["S"] -= 1
+
+            if len(set([x[2] for x in F[k]["P"]])) == 1:
+                F[k]["S"] += 1
+            else:
+                F[k]["S"] -= 1
+
+            D = len(set([PAYLOAD[payload].match(x[3])[1] for x in F[k]["P"]]))
+            P = len(set([PAYLOAD[payload].match(x[3])[2] for x in F[k]["P"]]))
+
+            if (D == 1) and (P == 1):
+                N = sorted([PAYLOAD[payload].match(x[3])[3] for x in F[k]["P"]])
+                n = len(N) - 1
+                B = True
+                while (B == True) and (n > 1):
+                    if int(N[n][0]) - int(N[n - 1][-1]) > 1:
+                        B = False
+                    else:
+                        n -= 1
+                if B is True:
+                    F[k]["S"] += 1
+                else:
+                    F[k]["S"] -= 1
+            else:
+                F[k]["S"] -= 1
+
+            k += 1
+
+        I = sorted(F.keys(), key=lambda k: F[k]["S"], reverse=True)
+
+        return [F[k]["P"] for k in I]
+    else:
+        return F
+
+
+def PRINTOUT(AUSPICIOUS, PROFILE):
+    E = {
+        4: [x for x in AUSPICIOUS if PAYLOAD[4].match(x[3])],
+        6: [x for x in AUSPICIOUS if PAYLOAD[6].match(x[3])],
+    }
+
+    F = SCORE2ND(PAIRINGS(E, 12), PROFILE)
+    M = len(F)
+
+    if M <= 8:
+        G = F
+    else:
+        G = []
+        X = []
+        i = 0
+        while (len(G) < 8) and (i < M):
+            B = True
+            N = len(F[i])
+            j = 0
+            while (B == True) and (j < N):
+                if F[i][j] in X:
+                    B = False
+                else:
+                    j += 1
+            if B == True:
+                G.append(F[i])
+                for j in range(N):
+                    X.append(F[i][j])
             i += 1
 
-        STR = [x for x in STR if not where_re.match(x)]
-    else:
-        print("Could find file on disk. Aborting.")
-        STR = None
-
-    return STR  # }}}
+    with open(f"brew/DRAFT{PROFILE}.txt", "w") as tfile:
+        print(G, file=tfile)
 
 
-def core():
+def main():
+    TERM = "202502"
 
-    dscpln = DSCPLN()
+    CURRICULUM = []
+    PARTIALITY = {}
+    AUSPICIOUS = []
 
-    if dscpln:
-        with open("brew/draft.csv", "w") as cfile:
-            print(dscpln, file=cfile)
+    with open(f"data/csv/{TERM}.csv", "r") as csvfile:
+        CSV = csv.reader(csvfile, delimiter=";")
+        for row in CSV:
+            CURRICULUM.append(row)
+
+    with open(f"data/toml/{TERM}.toml", "rb") as tomlfile:
+        TOML = tomllib.load(tomlfile)
+        for k, v in TOML.items():
+            PARTIALITY[k] = v
+
+    for curriculum in CURRICULUM:
+        score = SCORE1ST(PARTIALITY, curriculum)
+        if score > 0:
+            AUSPICIOUS.append(curriculum)
+
+    PRINTOUT(AUSPICIOUS, 4)
+    PRINTOUT(AUSPICIOUS, 6)
 
 
 if __name__ == "__main__":
-    core()
+    main()
