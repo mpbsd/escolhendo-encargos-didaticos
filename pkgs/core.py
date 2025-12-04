@@ -3,7 +3,7 @@
 import csv
 import re
 import tomllib
-from itertools import combinations
+from itertools import combinations, product
 
 PAYLOAD = {
     0: re.compile(r"^([0-9]{1,3})([MTN])([0-9]{1,3})$"),
@@ -39,12 +39,41 @@ def HARMONIOUS(list_of_schedules):
 
 def PAIRINGS(AUSPICIOUS, PROFILE):
     P = []
-    if PROFILE == 12:
+    if PROFILE == 8:
+        C = combinations(AUSPICIOUS[4], 2)
+        for X in C:
+            if HARMONIOUS([x[3] for x in X]):
+                P.append(X)
+    elif PROFILE == 10:
+        C = product(AUSPICIOUS[4], AUSPICIOUS[6])
+        for X in C:
+            if HARMONIOUS([x[3] for x in X]):
+                P.append(X)
+    elif PROFILE == 12:
         for n in [4, 6]:
-            N = PROFILE // n
-            for X in combinations(AUSPICIOUS[n], N):
+            C = combinations(AUSPICIOUS[n], PROFILE // n)
+            for X in C:
                 if HARMONIOUS([x[3] for x in X]):
                     P.append(X)
+    elif PROFILE == 14:
+        C = [
+            (x[0][0], x[0][1], x[1])
+            for x in product(combinations(AUSPICIOUS[4], 2), AUSPICIOUS[6])
+        ]
+        for X in C:
+            if HARMONIOUS([x[3] for x in X]):
+                P.append(X)
+    elif PROFILE == 16:
+        C = [x for x in combinations(AUSPICIOUS[4], 4)]
+        D = [
+            (x[0][0], x[0][1], x[1])
+            for x in product(combinations(AUSPICIOUS[6], 2), AUSPICIOUS[4])
+        ]
+        for d in D:
+            C.append(d)
+        for X in C:
+            if HARMONIOUS([x[3] for x in X]):
+                P.append(X)
     return P
 
 
@@ -125,7 +154,7 @@ def PRINTOUT(AUSPICIOUS, PROFILE):
 
 
 def main():
-    PROFILE = 12
+    PROFILE = 16
     TERM = "202502"
 
     PARTIALITY = {}
@@ -139,8 +168,7 @@ def main():
     with open(f"data/csv/{TERM}.csv", "r") as csvfile:
         CURRICULUM = csv.reader(csvfile, delimiter=";")
         for curriculum in CURRICULUM:
-            score = SCORE1ST(PARTIALITY, curriculum)
-            if score > 0:
+            if SCORE1ST(PARTIALITY, curriculum) > 0:
                 if PAYLOAD[4].match(curriculum[3]):
                     AUSPICIOUS[4].append(curriculum)
                 elif PAYLOAD[6].match(curriculum[3]):
