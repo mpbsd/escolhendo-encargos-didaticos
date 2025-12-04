@@ -22,10 +22,10 @@ def SCORE1ST(PARTIALITY, CURRICULUM):
     return score
 
 
-def HARMONIOUS(list_of_schedules):
+def HARMONIOUS(SCHEDULES):
     V = True
     D = re.compile(r"[0-9]")
-    L = [PAYLOAD[0].match(x).groups() for x in list_of_schedules]
+    L = [PAYLOAD[0].match(x).groups() for x in SCHEDULES]
     for x in combinations(L, 2):
         A, B, C = x[0]
         a, b, c = x[1]
