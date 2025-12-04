@@ -112,7 +112,7 @@ def SCORE2ND(PAIRINGS):
         else:
             F[k]["S"] -= 1
 
-        if len(F[k]["P"]) <= 2:
+        if len(F[k]["P"]) == sorted([len(x) for x in PAIRINGS])[0]:
             F[k]["S"] += 1
         else:
             F[k]["S"] -= 1
