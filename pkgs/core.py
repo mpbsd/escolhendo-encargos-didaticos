@@ -7,8 +7,9 @@ from itertools import combinations
 
 PAYLOAD = {
     0: re.compile(r"^([0-9]{1,3})([MTN])([0-9]{1,3})$"),
-    6: re.compile(r"^([0-9]{3})([MTN])([0-9]{2})$"),
+    2: re.compile(r"^([0-9]{1})([MTN])([0-9]{2})$"),
     4: re.compile(r"^([0-9]{2})([MTN])([0-9]{2})$"),
+    6: re.compile(r"^([0-9]{3})([MTN])([0-9]{2})$"),
 }
 
 
@@ -24,12 +25,7 @@ def SCORE1ST(PARTIALITY, CURRICULUM):
 def HARMONIOUS(list_of_schedules):
     V = True
     D = re.compile(r"[0-9]")
-    L = list(
-        map(
-            lambda x: PAYLOAD[0].match(x).groups(),
-            list_of_schedules,
-        )
-    )
+    L = [PAYLOAD[0].match(x).groups() for x in list_of_schedules]
     for x in combinations(L, 2):
         A, B, C = x[0]
         a, b, c = x[1]
@@ -42,70 +38,65 @@ def HARMONIOUS(list_of_schedules):
 
 
 def PAIRINGS(AUSPICIOUS, PROFILE):
-    F = {}
+    P = []
     if PROFILE == 12:
         for n in [4, 6]:
             N = PROFILE // n
-            F[n] = [
-                X
-                for X in combinations(AUSPICIOUS[n], N)
-                if HARMONIOUS([x[3] for x in X])
-            ]
-    return F
+            for X in combinations(AUSPICIOUS[n], N):
+                if HARMONIOUS([x[3] for x in X]):
+                    P.append(X)
+    return P
 
 
-def SCORE2ND(PAIRINGS, payload):
+def SCORE2ND(PAIRINGS):
     F = {}
-    if payload in PAIRINGS.keys():
-        k = 0
-        for pairing in PAIRINGS[payload]:
-            F[k] = {"P": pairing, "S": 0}
+    k = 0
+    for pairing in PAIRINGS:
+        F[k] = {"P": pairing, "S": 0}
 
-            if len(set([x[0] for x in F[k]["P"]])) == 1:
-                F[k]["S"] += 1
-            else:
-                F[k]["S"] -= 1
+        if len(set([x[0] for x in F[k]["P"]])) == 1:
+            F[k]["S"] += 1
+        else:
+            F[k]["S"] -= 1
 
-            if len(set([x[2] for x in F[k]["P"]])) == 1:
-                F[k]["S"] += 1
-            else:
-                F[k]["S"] -= 1
+        if len(set([x[2] for x in F[k]["P"]])) == 1:
+            F[k]["S"] += 1
+        else:
+            F[k]["S"] -= 1
 
-            D = len(set([PAYLOAD[payload].match(x[3])[1] for x in F[k]["P"]]))
-            P = len(set([PAYLOAD[payload].match(x[3])[2] for x in F[k]["P"]]))
+        D = len(set([PAYLOAD[0].match(x[3])[1] for x in F[k]["P"]]))
+        P = len(set([PAYLOAD[0].match(x[3])[2] for x in F[k]["P"]]))
 
-            if (D == 1) and (P == 1):
-                N = sorted([PAYLOAD[payload].match(x[3])[3] for x in F[k]["P"]])
-                n = len(N) - 1
-                B = True
-                while (B == True) and (n > 1):
-                    if int(N[n][0]) - int(N[n - 1][-1]) > 1:
-                        B = False
-                    else:
-                        n -= 1
-                if B is True:
-                    F[k]["S"] += 1
+        if (D == 1) and (P == 1):
+            N = sorted([PAYLOAD[0].match(x[3])[3] for x in F[k]["P"]])
+            n = len(N) - 1
+            B = True
+            while (B == True) and (n > 1):
+                if int(N[n][0]) - int(N[n - 1][-1]) > 1:
+                    B = False
                 else:
-                    F[k]["S"] -= 1
+                    n -= 1
+            if B is True:
+                F[k]["S"] += 1
             else:
                 F[k]["S"] -= 1
+        else:
+            F[k]["S"] -= 1
 
-            k += 1
+        if len(F[k]["P"]) <= 2:
+            F[k]["S"] += 1
+        else:
+            F[k]["S"] -= 1
 
-        I = sorted(F.keys(), key=lambda k: F[k]["S"], reverse=True)
+        k += 1
 
-        return [F[k]["P"] for k in I]
-    else:
-        return F
+    I = sorted(F.keys(), key=lambda t: F[t]["S"], reverse=True)
+
+    return [F[k]["P"] for k in I]
 
 
 def PRINTOUT(AUSPICIOUS, PROFILE):
-    E = {
-        4: [x for x in AUSPICIOUS if PAYLOAD[4].match(x[3])],
-        6: [x for x in AUSPICIOUS if PAYLOAD[6].match(x[3])],
-    }
-
-    F = SCORE2ND(PAIRINGS(E, 12), PROFILE)
+    F = SCORE2ND(PAIRINGS(AUSPICIOUS, PROFILE))
     M = len(F)
 
     if M <= 8:
@@ -134,29 +125,28 @@ def PRINTOUT(AUSPICIOUS, PROFILE):
 
 
 def main():
+    PROFILE = 12
     TERM = "202502"
 
-    CURRICULUM = []
     PARTIALITY = {}
-    AUSPICIOUS = []
-
-    with open(f"data/csv/{TERM}.csv", "r") as csvfile:
-        CSV = csv.reader(csvfile, delimiter=";")
-        for row in CSV:
-            CURRICULUM.append(row)
+    AUSPICIOUS = {4: [], 6: []}
 
     with open(f"data/toml/{TERM}.toml", "rb") as tomlfile:
         TOML = tomllib.load(tomlfile)
         for k, v in TOML.items():
             PARTIALITY[k] = v
 
-    for curriculum in CURRICULUM:
-        score = SCORE1ST(PARTIALITY, curriculum)
-        if score > 0:
-            AUSPICIOUS.append(curriculum)
+    with open(f"data/csv/{TERM}.csv", "r") as csvfile:
+        CURRICULUM = csv.reader(csvfile, delimiter=";")
+        for curriculum in CURRICULUM:
+            score = SCORE1ST(PARTIALITY, curriculum)
+            if score > 0:
+                if PAYLOAD[4].match(curriculum[3]):
+                    AUSPICIOUS[4].append(curriculum)
+                elif PAYLOAD[6].match(curriculum[3]):
+                    AUSPICIOUS[6].append(curriculum)
 
-    PRINTOUT(AUSPICIOUS, 4)
-    PRINTOUT(AUSPICIOUS, 6)
+    PRINTOUT(AUSPICIOUS, PROFILE)
 
 
 if __name__ == "__main__":
