@@ -114,7 +114,7 @@ def IFIXIT(a_given_str):  # {{{1
 
 
 def DSCPLN(year=Y, semester=S):  # {{{
-    PDF = f"data/pdf/{year}_{semester}.pdf"
+    PDF = f"data/pdf/{year}{semester:02d}.pdf"
 
     if Path(PDF).is_file():
         STR = ""
@@ -151,7 +151,7 @@ def DSCPLN(year=Y, semester=S):  # {{{
 
 def core():
 
-    dscpln = DSCPLN()
+    dscpln = DSCPLN("2025", 1)
 
     if dscpln:
         with open("brew/draft.csv", "w") as cfile:

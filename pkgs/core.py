@@ -13,19 +13,19 @@ PAYLOAD = {
 }
 
 
-def SCORE1ST(PARTIALITY, CURRICULUM):
+def SCORE1ST(PARTIALITY, DISCIPLINE):
     score = 0
-    score += PARTIALITY["CAMPUS"][CURRICULUM[0]]
-    score += PARTIALITY["CURSO"][CURRICULUM[1]]
-    score += PARTIALITY["DISCIPLINA"][CURRICULUM[2]]
-    score += PARTIALITY["HORARIO"][CURRICULUM[3]]
+    score += PARTIALITY["CAMPUS"][DISCIPLINE[0]]
+    score += PARTIALITY["CURSO"][DISCIPLINE[1]]
+    score += PARTIALITY["DISCIPLINA"][DISCIPLINE[2]]
+    score += PARTIALITY["HORARIO"][DISCIPLINE[3]]
     return score
 
 
-def HARMONIOUS(SCHEDULES):
+def HARMONIOUS(SCHEDULE):
     V = True
     D = re.compile(r"[0-9]")
-    L = [PAYLOAD[0].match(x).groups() for x in SCHEDULES]
+    L = [PAYLOAD[0].match(x).groups() for x in SCHEDULE]
     for x in combinations(L, 2):
         A, B, C = x[0]
         a, b, c = x[1]
@@ -77,11 +77,13 @@ def PAIRINGS(AUSPICIOUS, PROFILE):
     return P
 
 
-def SCORE2ND(PAIRINGS):
+def SCORE2ND(PARTIALITY, PAIRINGS):
     F = {}
     k = 0
     for pairing in PAIRINGS:
-        F[k] = {"P": pairing, "S": 0}
+        score = sum([SCORE1ST(PARTIALITY, dscpln) for dscpln in pairing])
+
+        F[k] = {"P": pairing, "S": score}
 
         if len(set([x[0] for x in F[k]["P"]])) == 1:
             F[k]["S"] += 1
@@ -124,17 +126,18 @@ def SCORE2ND(PAIRINGS):
     return [F[k]["P"] for k in I]
 
 
-def PRINTOUT(AUSPICIOUS, PROFILE):
-    F = SCORE2ND(PAIRINGS(AUSPICIOUS, PROFILE))
+def PRINTOUT(PARTIALITY, AUSPICIOUS, PROFILE):
+    F = SCORE2ND(PARTIALITY, PAIRINGS(AUSPICIOUS, PROFILE))
     M = len(F)
+    Q = 8
 
-    if M <= 8:
+    if M <= Q:
         G = F
     else:
         G = []
         X = []
         i = 0
-        while (len(G) < 8) and (i < M):
+        while (len(G) < Q) and (i < M):
             B = True
             N = len(F[i])
             j = 0
@@ -154,7 +157,7 @@ def PRINTOUT(AUSPICIOUS, PROFILE):
 
 
 def main():
-    PROFILE = 16
+    PROFILE = 12
     TERM = "202502"
 
     PARTIALITY = {}
@@ -166,15 +169,15 @@ def main():
             PARTIALITY[k] = v
 
     with open(f"data/csv/{TERM}.csv", "r") as csvfile:
-        CURRICULUM = csv.reader(csvfile, delimiter=";")
-        for curriculum in CURRICULUM:
-            if SCORE1ST(PARTIALITY, curriculum) > 0:
-                if PAYLOAD[4].match(curriculum[3]):
-                    AUSPICIOUS[4].append(curriculum)
-                elif PAYLOAD[6].match(curriculum[3]):
-                    AUSPICIOUS[6].append(curriculum)
+        DISCIPLINE = csv.reader(csvfile, delimiter=";")
+        for discipline in DISCIPLINE:
+            if SCORE1ST(PARTIALITY, discipline) > 0:
+                if PAYLOAD[4].match(discipline[3]):
+                    AUSPICIOUS[4].append(discipline)
+                elif PAYLOAD[6].match(discipline[3]):
+                    AUSPICIOUS[6].append(discipline)
 
-    PRINTOUT(AUSPICIOUS, PROFILE)
+    PRINTOUT(PARTIALITY, AUSPICIOUS, PROFILE)
 
 
 if __name__ == "__main__":
