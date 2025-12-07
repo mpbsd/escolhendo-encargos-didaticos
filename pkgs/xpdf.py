@@ -151,7 +151,8 @@ def DSCPLN(year=Y, semester=S):  # {{{
 
 def core():
 
-    dscpln = DSCPLN("2025", 1)
+    # dscpln = DSCPLN("2025", 2)
+    dscpln = DSCPLN()
 
     if dscpln:
         with open("brew/draft.csv", "w") as cfile:
