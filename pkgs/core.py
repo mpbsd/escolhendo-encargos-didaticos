@@ -169,7 +169,7 @@ def main():
             PARTIALITY[k] = v
 
     with open(f"data/csv/{TERM}.csv", "r") as csvfile:
-        DISCIPLINE = csv.reader(csvfile, delimiter=";")
+        DISCIPLINE = csv.reader(csvfile, delimiter=",")
         for discipline in DISCIPLINE:
             if SCORE1ST(PARTIALITY, discipline) > 0:
                 if PAYLOAD[4].match(discipline[3]):

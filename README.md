@@ -24,12 +24,8 @@ Eles funcionam como bancos de dados para as disciplinas nos semestres indicados
 pelo nome do arquivo, e os campos neles contidos têm o seguinte significado:
 
 ```csv
-CAMPUS; CURSO; DISCIPLINA; HORARIO
+CAMPUS, CURSO, DISCIPLINA, HORARIO
 ```
-
-Sim, o separador é o `;`
-
-Sinta-se à vontade para alterá-lo ;)
 
 ## Sobre os arquivos Toml
 
