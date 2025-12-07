@@ -5,24 +5,24 @@ import re
 import tomllib
 from itertools import combinations, product
 
-PAYLOAD = {
+PAYLOAD = {  # {{{
     0: re.compile(r"^([0-9]{1,3})([MTN])([0-9]{1,3})$"),
     2: re.compile(r"^([0-9]{1})([MTN])([0-9]{2})$"),
     4: re.compile(r"^([0-9]{2})([MTN])([0-9]{2})$"),
     6: re.compile(r"^([0-9]{3})([MTN])([0-9]{2})$"),
-}
+}  # }}}
 
 
-def SCORE1ST(PARTIALITY, DISCIPLINE):
+def SCORE1ST(PARTIALITY, DISCIPLINE):  # {{{
     score = 0
     score += PARTIALITY["CAMPUS"][DISCIPLINE[0]]
     score += PARTIALITY["CURSO"][DISCIPLINE[1]]
     score += PARTIALITY["DISCIPLINA"][DISCIPLINE[2]]
     score += PARTIALITY["HORARIO"][DISCIPLINE[3]]
-    return score
+    return score  # }}}
 
 
-def HARMONIOUS(SCHEDULE):
+def HARMONIOUS(SCHEDULE):  # {{{
     V = True
     D = re.compile(r"[0-9]")
     L = [PAYLOAD[0].match(x).groups() for x in SCHEDULE]
@@ -34,10 +34,10 @@ def HARMONIOUS(SCHEDULE):
         C2 = len([d for d in D.findall(C) if d in D.findall(c)]) > 0
         if C0 and C1 and C2:
             V = False
-    return V
+    return V  # }}}
 
 
-def PAIRINGS(AUSPICIOUS, PROFILE):
+def PAIRINGS(AUSPICIOUS, PROFILE):  # {{{
     P = []
     if PROFILE == 8:
         C = combinations(AUSPICIOUS[4], 2)
@@ -74,10 +74,10 @@ def PAIRINGS(AUSPICIOUS, PROFILE):
         for X in C:
             if HARMONIOUS([x[3] for x in X]):
                 P.append(X)
-    return P
+    return P  # }}}
 
 
-def SCORE2ND(PARTIALITY, PAIRINGS):
+def SCORE2ND(PARTIALITY, PAIRINGS):  # {{{
     F = {}
     k = 0
     for pairing in PAIRINGS:
@@ -123,10 +123,10 @@ def SCORE2ND(PARTIALITY, PAIRINGS):
 
     I = sorted(F.keys(), key=lambda t: F[t]["S"], reverse=True)
 
-    return [F[k]["P"] for k in I]
+    return [F[k]["P"] for k in I]  # }}}
 
 
-def PRINTOUT(PARTIALITY, AUSPICIOUS, PROFILE):
+def PRINTOUT(PARTIALITY, AUSPICIOUS, PROFILE):  # {{{
     F = SCORE2ND(PARTIALITY, PAIRINGS(AUSPICIOUS, PROFILE))
     M = len(F)
     Q = 10
@@ -153,10 +153,10 @@ def PRINTOUT(PARTIALITY, AUSPICIOUS, PROFILE):
             i += 1
 
     with open(f"brew/DRAFT{PROFILE}.txt", "w") as tfile:
-        print(G, file=tfile)
+        print(G, file=tfile)  # }}}
 
 
-def main():
+def core():
     PROFILE = 12
     TERM = "202502"
 
@@ -181,4 +181,4 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    core()

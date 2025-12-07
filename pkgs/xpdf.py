@@ -149,7 +149,7 @@ def DSCPLN(year=Y, semester=S):  # {{{
     return STR  # }}}
 
 
-def core():
+def xpdf():
 
     # dscpln = DSCPLN("2025", 2)
     dscpln = DSCPLN()
@@ -160,4 +160,4 @@ def core():
 
 
 if __name__ == "__main__":
-    core()
+    xpdf()
