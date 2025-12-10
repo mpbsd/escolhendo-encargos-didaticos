@@ -1,5 +1,5 @@
 build:
-	python3 -m pkgs.core
+	python3 -m pkgs.core --lump 12 --term 202502
 
 black:
 	isort pkgs/core.py

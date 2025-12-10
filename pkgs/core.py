@@ -2,6 +2,7 @@
 
 import csv
 import re
+import sys
 import tomllib
 from itertools import combinations, product
 
@@ -178,12 +179,31 @@ def OPENSESAME(TERM):  # {{{
 
 
 def core():
-    TERM = "202502"
-    LUMP = 16
 
-    PARTIALITY, AUSPICIOUS = OPENSESAME(TERM)
+    FLAG = {"LUMP": ["--lump", "-l"], "TERM": ["--term", "-t"]}
+    OPTS = {
+        "LUMP": ["8", "10", "12", "14", "16"],
+        "TERM": re.compile(r"^20(?:2[5-9]|[3-9][0-9])0[12]$"),
+    }
 
-    PRINTOUT(PARTIALITY, AUSPICIOUS, LUMP)
+    if len(sys.argv) == 5:
+        _, F1, O1, F2, O2 = sys.argv
+        C0 = (F1 in FLAG["LUMP"]) and (O1 in OPTS["LUMP"])
+        C1 = (F2 in FLAG["TERM"]) and (OPTS["TERM"].match(O2))
+        C2 = (F1 in FLAG["TERM"]) and (OPTS["TERM"].match(O1))
+        C3 = (F2 in FLAG["LUMP"]) and (O2 in OPTS["LUMP"])
+        if C0 and C1:
+            LUMP = int(O1)
+            TERM = O2
+            PARTIALITY, AUSPICIOUS = OPENSESAME(TERM)
+            PRINTOUT(PARTIALITY, AUSPICIOUS, LUMP)
+        elif C2 and C3:
+            LUMP = int(O2)
+            TERM = O1
+            PARTIALITY, AUSPICIOUS = OPENSESAME(TERM)
+            PRINTOUT(PARTIALITY, AUSPICIOUS, LUMP)
+        else:
+            print("There were unrecognized flags/options.")
 
 
 if __name__ == "__main__":
