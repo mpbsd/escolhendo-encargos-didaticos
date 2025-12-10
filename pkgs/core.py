@@ -37,25 +37,25 @@ def HARMONIOUS(SCHEDULE):  # {{{
     return V  # }}}
 
 
-def PAIRINGS(AUSPICIOUS, PROFILE):  # {{{
+def PAIRINGS(AUSPICIOUS, LUMP):  # {{{
     P = []
-    if PROFILE == 8:
+    if LUMP == 8:
         C = combinations(AUSPICIOUS[4], 2)
         for X in C:
             if HARMONIOUS([x[3] for x in X]):
                 P.append(X)
-    elif PROFILE == 10:
+    elif LUMP == 10:
         C = product(AUSPICIOUS[4], AUSPICIOUS[6])
         for X in C:
             if HARMONIOUS([x[3] for x in X]):
                 P.append(X)
-    elif PROFILE == 12:
+    elif LUMP == 12:
         for n in [4, 6]:
-            C = combinations(AUSPICIOUS[n], PROFILE // n)
+            C = combinations(AUSPICIOUS[n], LUMP // n)
             for X in C:
                 if HARMONIOUS([x[3] for x in X]):
                     P.append(X)
-    elif PROFILE == 14:
+    elif LUMP == 14:
         C = [
             (x[0][0], x[0][1], x[1])
             for x in product(combinations(AUSPICIOUS[4], 2), AUSPICIOUS[6])
@@ -63,7 +63,7 @@ def PAIRINGS(AUSPICIOUS, PROFILE):  # {{{
         for X in C:
             if HARMONIOUS([x[3] for x in X]):
                 P.append(X)
-    elif PROFILE == 16:
+    elif LUMP == 16:
         C = [x for x in combinations(AUSPICIOUS[4], 4)]
         D = [
             (x[0][0], x[0][1], x[1])
@@ -126,8 +126,8 @@ def SCORE2ND(PARTIALITY, PAIRINGS):  # {{{
     return [F[k]["P"] for k in I]  # }}}
 
 
-def PRINTOUT(PARTIALITY, AUSPICIOUS, PROFILE):  # {{{
-    F = SCORE2ND(PARTIALITY, PAIRINGS(AUSPICIOUS, PROFILE))
+def PRINTOUT(PARTIALITY, AUSPICIOUS, LUMP):  # {{{
+    F = SCORE2ND(PARTIALITY, PAIRINGS(AUSPICIOUS, LUMP))
     M = len(F)
     Q = 10
 
@@ -152,14 +152,11 @@ def PRINTOUT(PARTIALITY, AUSPICIOUS, PROFILE):  # {{{
                     X.append(F[i][j])
             i += 1
 
-    with open(f"brew/DRAFT{PROFILE}.txt", "w") as tfile:
+    with open(f"brew/DRAFT{LUMP}.txt", "w") as tfile:
         print(G, file=tfile)  # }}}
 
 
-def core():
-    PROFILE = 12
-    TERM = "202502"
-
+def OPENSESAME(TERM):  # {{{
     PARTIALITY = {}
     AUSPICIOUS = {4: [], 6: []}
 
@@ -177,7 +174,16 @@ def core():
                 elif PAYLOAD[6].match(discipline[3]):
                     AUSPICIOUS[6].append(discipline)
 
-    PRINTOUT(PARTIALITY, AUSPICIOUS, PROFILE)
+    return PARTIALITY, AUSPICIOUS  # }}}
+
+
+def core():
+    TERM = "202502"
+    LUMP = 16
+
+    PARTIALITY, AUSPICIOUS = OPENSESAME(TERM)
+
+    PRINTOUT(PARTIALITY, AUSPICIOUS, LUMP)
 
 
 if __name__ == "__main__":
