@@ -4,6 +4,7 @@ import csv
 import re
 import sys
 import tomllib
+from datetime import datetime
 from itertools import combinations, product
 
 PAYLOAD = {  # {{{
@@ -186,7 +187,18 @@ def core():
         "TERM": re.compile(r"^20(?:2[5-9]|[3-9][0-9])0[12]$"),
     }
 
-    if len(sys.argv) == 5:
+    if len(sys.argv) == 3:
+        _, F1, O1 = sys.argv
+        C0 = (F1 in FLAG["LUMP"]) and (O1 in OPTS["LUMP"])
+        T0 = datetime.now()
+        Y0 = T0.strftime("%Y")
+        M0 = T0.strftime("%m")
+        M1 = 1 if int(M0) <= 6 else 2
+        LUMP = int(O1)
+        TERM = f"{Y0}{M1:02d}"
+        PARTIALITY, AUSPICIOUS = OPENSESAME(TERM)
+        PRINTOUT(PARTIALITY, AUSPICIOUS, LUMP)
+    elif len(sys.argv) == 5:
         _, F1, O1, F2, O2 = sys.argv
         C0 = (F1 in FLAG["LUMP"]) and (O1 in OPTS["LUMP"])
         C1 = (F2 in FLAG["TERM"]) and (OPTS["TERM"].match(O2))
@@ -204,6 +216,8 @@ def core():
             PRINTOUT(PARTIALITY, AUSPICIOUS, LUMP)
         else:
             print("There were unrecognized flags/options.")
+    else:
+        print("Wrong number of flags/options.")
 
 
 if __name__ == "__main__":

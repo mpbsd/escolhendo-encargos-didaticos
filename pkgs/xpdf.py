@@ -151,7 +151,6 @@ def DSCPLN(year=Y, semester=S):  # {{{
 
 def xpdf():
 
-    # dscpln = DSCPLN("2025", 2)
     dscpln = DSCPLN()
 
     if dscpln:
