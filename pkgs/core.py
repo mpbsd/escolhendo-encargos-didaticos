@@ -179,15 +179,34 @@ def OPENSESAME(TERM):  # {{{
     return PARTIALITY, AUSPICIOUS  # }}}
 
 
+def HELP():
+    help = """
+    Don't panic!
+    """
+    print(help)
+
+
 def core():
 
-    FLAG = {"LUMP": ["--lump", "-l"], "TERM": ["--term", "-t"]}
+    FLAG = {
+        "HELP": ["-h", "--help"],
+        "LUMP": ["-l", "--lump"],
+        "TERM": ["-t", "--term"],
+    }
+
     OPTS = {
         "LUMP": ["8", "10", "12", "14", "16"],
         "TERM": re.compile(r"^20(?:2[5-9]|[3-9][0-9])0[12]$"),
     }
 
-    if len(sys.argv) == 3:
+    if len(sys.argv) == 2:
+        _, F1 = sys.argv
+        if F1 in FLAG["HELP"]:
+            HELP()
+        else:
+            print("unrecognized flag")
+            print("Type -h for help")
+    elif len(sys.argv) == 3:
         _, F1, O1 = sys.argv
         C0 = (F1 in FLAG["LUMP"]) and (O1 in OPTS["LUMP"])
         T0 = datetime.now()
@@ -216,8 +235,10 @@ def core():
             PRINTOUT(PARTIALITY, AUSPICIOUS, LUMP)
         else:
             print("There were unrecognized flags/options.")
+            print("Type -h for help")
     else:
         print("Wrong number of flags/options.")
+        print("Type -h for help")
 
 
 if __name__ == "__main__":
