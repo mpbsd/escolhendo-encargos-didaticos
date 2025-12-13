@@ -179,11 +179,52 @@ def OPENSESAME(TERM):  # {{{
     return PARTIALITY, AUSPICIOUS  # }}}
 
 
-def HELP():
+def HELP():  # {{{
     help = """
-    Don't panic!
+    Convenção:
+
+    Todos os comandos serão digitados na raiz do projeto.
+
+    Representamos semestres letivos como strings no formato 'YYYYSS' em que
+    'YYYY' representa o ano (4 dígitos) e 'SS' representa o semestre (2
+    dígitos). Assim, por exemplo, os primeiro e segundo semestres letivos de
+    2026 devem ser representados, respectivamente, como '202601' e '202602'.
+
+    Uso:
+
+    Seja N a carga horária semanal do docente, em que N é um dentre os naturais:
+    8, 10, 12, 14 ou 16. Neste caso, deve-se digitar o seguinte:
+
+        python3 -m pkgs.core (-l|--lump) N (-t|--term) YYYYSS
+
+    É possível digitar apenas a carga horária semana do docente, como a seguir:
+
+        python3 -m pkgs.core (-l|--lump) N
+
+    Neste caso, os scripts assumem que o semestre letivo é o semestre atual
+    (datas do sistema).
+
+    Dependências:
+
+    Para o correto funcionamento dos scripts os seguintes arquivos se fazem
+    necessários:
+
+        - data/csv/YYYYSS.csv
+
+            Contém as disciplinas ofertadas pelo IME/UFG em YYYYSS. Por exemplo,
+            veja data/csv/202501.csv e data/csv/202502.csv.
+
+        - data/toml/YYYYSS.toml
+
+            Contém as preferências pessoais do docente quanto a CAMPUS, CURSO,
+            DISCIPLINA e HORÁRIOS. Por exemplo, veja data/toml/202501.toml e
+            data/toml/202502.toml.
+
+    Dúvidas:
+
+    Envie um e-mail para bezerra@ufg.br. Responderei assim que possível.
     """
-    print(help)
+    print(help)  # }}}
 
 
 def core():
@@ -204,19 +245,20 @@ def core():
         if F1 in FLAG["HELP"]:
             HELP()
         else:
-            print("unrecognized flag")
-            print("Type -h for help")
+            print("unrecognized flag. Please, type -h for help.")
     elif len(sys.argv) == 3:
         _, F1, O1 = sys.argv
         C0 = (F1 in FLAG["LUMP"]) and (O1 in OPTS["LUMP"])
-        T0 = datetime.now()
-        Y0 = T0.strftime("%Y")
-        M0 = T0.strftime("%m")
-        M1 = 1 if int(M0) <= 6 else 2
-        LUMP = int(O1)
-        TERM = f"{Y0}{M1:02d}"
-        PARTIALITY, AUSPICIOUS = OPENSESAME(TERM)
-        PRINTOUT(PARTIALITY, AUSPICIOUS, LUMP)
+        if C0:
+            T0 = datetime.now()
+            Y0 = T0.strftime("%Y")
+            M0 = 1 if int(T0.strftime("%m")) <= 6 else 2
+            LUMP = int(O1)
+            TERM = f"{Y0}{M0:02d}"
+            PARTIALITY, AUSPICIOUS = OPENSESAME(TERM)
+            PRINTOUT(PARTIALITY, AUSPICIOUS, LUMP)
+        else:
+            print("Unrecognized flags/options. Please, type -h for help.")
     elif len(sys.argv) == 5:
         _, F1, O1, F2, O2 = sys.argv
         C0 = (F1 in FLAG["LUMP"]) and (O1 in OPTS["LUMP"])
@@ -234,11 +276,9 @@ def core():
             PARTIALITY, AUSPICIOUS = OPENSESAME(TERM)
             PRINTOUT(PARTIALITY, AUSPICIOUS, LUMP)
         else:
-            print("There were unrecognized flags/options.")
-            print("Type -h for help")
+            print("Unrecognized flags/options. Please, type -h for help.")
     else:
-        print("Wrong number of flags/options.")
-        print("Type -h for help")
+        print("Wrong number of flags/options. Please, type -h for help.")
 
 
 if __name__ == "__main__":
