@@ -1,5 +1,8 @@
-build:
-	python3 -m pkgs.core --lump 12 --term 202502
+help:
+	python3 -m pkgs.core --help
+
+%:
+	python3 -m pkgs.core --lump $@
 
 black:
 	isort pkgs/core.py
@@ -17,4 +20,4 @@ ready:
 	pip install -r requirements.txt; \
 	deactivate
 
-.PHONY: build black clean ready
+.PHONY: help black clean ready

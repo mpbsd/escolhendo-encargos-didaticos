@@ -131,7 +131,7 @@ def SCORE2ND(PARTIALITY, PAIRINGS):  # {{{
 def PRINTOUT(PARTIALITY, AUSPICIOUS, LUMP):  # {{{
     F = SCORE2ND(PARTIALITY, PAIRINGS(AUSPICIOUS, LUMP))
     M = len(F)
-    Q = 10
+    Q = 8
 
     if M <= Q:
         G = F
@@ -186,9 +186,9 @@ def HELP():  # {{{
     Todos os comandos serão digitados na raiz do projeto.
 
     Representamos semestres letivos como strings no formato 'YYYYSS' em que
-    'YYYY' representa o ano (4 dígitos) e 'SS' representa o semestre (2
+    'YYYY' representa o ano (quatro dígitos) e 'SS' representa o semestre (dois
     dígitos). Assim, por exemplo, os primeiro e segundo semestres letivos de
-    2026 devem ser representados, respectivamente, como '202601' e '202602'.
+    2026 são representados, respectivamente, como '202601' e '202602'.
 
     Uso:
 
@@ -197,7 +197,7 @@ def HELP():  # {{{
 
         python3 -m pkgs.core (-l|--lump) N (-t|--term) YYYYSS
 
-    É possível digitar apenas a carga horária semana do docente, como a seguir:
+    É possível digitar apenas a carga horária semanal do docente, como a seguir:
 
         python3 -m pkgs.core (-l|--lump) N
 
