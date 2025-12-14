@@ -39,7 +39,3 @@ preferências pessoais quanto a:
 
 Deste modo, cada arquivo `toml` deve conter estes 4 grupos: `CAMPUS`, `CURSO`,
 `DISCIPLINA` e `HORARIO` (sem ascento).
-
-## Afazeres
-
-- Adicionar CLI (Command Line Interface);

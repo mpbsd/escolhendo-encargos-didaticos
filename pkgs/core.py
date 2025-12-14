@@ -183,8 +183,6 @@ def HELP():  # {{{
     help = """
     Convenção:
 
-    Todos os comandos serão digitados na raiz do projeto.
-
     Representamos semestres letivos como strings no formato 'YYYYSS' em que
     'YYYY' representa o ano (quatro dígitos) e 'SS' representa o semestre (dois
     dígitos). Assim, por exemplo, os primeiro e segundo semestres letivos de
@@ -245,7 +243,7 @@ def core():
         if F1 in FLAG["HELP"]:
             HELP()
         else:
-            print("unrecognized flag. Please, type -h for help.")
+            print("Unrecognized flag. Please, type -h for help.")
     elif len(sys.argv) == 3:
         _, F1, O1 = sys.argv
         C0 = (F1 in FLAG["LUMP"]) and (O1 in OPTS["LUMP"])
