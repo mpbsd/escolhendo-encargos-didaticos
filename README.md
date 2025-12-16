@@ -3,21 +3,6 @@
 Scripts para auxiliar-me na escolha de meus encargos didáticos para o semestre
 vindouro.
 
-## Regras do jogo
-
-1. Apresentar ao menos oito configurações distintas;
-
-1. Cada quádrupla ordenada (campus, curso, disciplina, horário) deve aparecer em
-   apenas uma das configurações apresentadas;
-
-1. Ao menos uma das configurações apresentadas deve conter disciplinas no
-   período noturno;
-
-1. As configurações apresentadas devem abranger ao menos dois turnos distintos;
-
-1. Ao menos uma das configurações apresentadas deve conter uma ou mais
-   disciplinas no Campus da FCT (Faculdade de Ciências e Tecnologia).
-
 ## Sobre os arquivos csv
 
 Eles funcionam como bancos de dados para as disciplinas nos semestres indicados
