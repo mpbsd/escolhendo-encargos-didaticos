@@ -146,16 +146,16 @@ def DSCPLN(year=Y, semester=S):  # {{{
         print("Could find file on disk. Aborting.")
         STR = None
 
+    if STR:
+        with open("brew/draft.csv", "w") as cfile:
+            print(STR, file=cfile)
+
     return STR  # }}}
 
 
 def xpdf():
 
-    dscpln = DSCPLN()
-
-    if dscpln:
-        with open("brew/draft.csv", "w") as cfile:
-            print(dscpln, file=cfile)
+    DSCPLN()
 
 
 if __name__ == "__main__":

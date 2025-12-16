@@ -227,17 +227,18 @@ def HELP():  # {{{
 
 def core():
 
-    FLAG = {
+    FLAG = {  # {{{
         "HELP": ["-h", "--help"],
         "LUMP": ["-l", "--lump"],
         "TERM": ["-t", "--term"],
-    }
+    }  # }}}
 
-    OPTS = {
+    OPTS = {  # {{{
         "LUMP": ["8", "10", "12", "14", "16"],
         "TERM": re.compile(r"^20(?:2[5-9]|[3-9][0-9])0[12]$"),
-    }
+    }  # }}}
 
+    # handle flags/options
     if len(sys.argv) == 2:
         _, F1 = sys.argv
         if F1 in FLAG["HELP"]:
@@ -246,8 +247,7 @@ def core():
             print("Unrecognized flag. Please, type -h for help.")
     elif len(sys.argv) == 3:
         _, F1, O1 = sys.argv
-        C0 = (F1 in FLAG["LUMP"]) and (O1 in OPTS["LUMP"])
-        if C0:
+        if (F1 in FLAG["LUMP"]) and (O1 in OPTS["LUMP"]):
             T0 = datetime.now()
             Y0 = T0.strftime("%Y")
             M0 = 1 if int(T0.strftime("%m")) <= 6 else 2
