@@ -30,12 +30,5 @@ CAMPUS, CURSO, DISCIPLINA, HORARIO
 ## Sobre os arquivos Toml
 
 Eles funcionam como arquivos de configuração em que você especifica suas
-preferências pessoais quanto a:
-
-1. **Campus**,
-1. **Curso**,
-1. **Disciplinas**, e
-1. **Horários**.
-
-Deste modo, cada arquivo `toml` deve conter estes 4 grupos: `CAMPUS`, `CURSO`,
-`DISCIPLINA` e `HORARIO` (sem ascento).
+preferências pessoais quanto a: `CAMPUS`, `CURSO`, `DISCIPLINA` e `HORARIO`
+(sem ascento).
