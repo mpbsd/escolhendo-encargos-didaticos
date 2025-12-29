@@ -1,6 +1,6 @@
 # Escolhendo Encargos Didáticos
 
-Scripts para auxiliar-me na escolha de meus encargos didáticos para o semestre
+Scripts que me auxiliam na escolha de meus encargos didáticos para o semestre
 vindouro.
 
 ## Sobre os arquivos CSV
